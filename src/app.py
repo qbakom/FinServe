@@ -82,6 +82,20 @@ async def generate_pdf(app_data: ApplicationData):
     )
 
 
+@app.post("/api/memo/pdf")
+async def memo_to_pdf(memo: CreditMemo):
+    """Convert an already-generated memo to PDF without re-calling AI."""
+    pdf_bytes = render_memo_pdf(memo)
+    name = memo.application.client_name.replace(" ", "_")
+    filename = f"credit_memo_{name}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("src.app:app", host="0.0.0.0", port=8000, reload=True)

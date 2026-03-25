@@ -1,13 +1,19 @@
 """PDF export for credit memos using WeasyPrint."""
 
+from html import escape
 from src.models import CreditMemo
+
+
+def _esc(value) -> str:
+    """Escape a value for safe HTML embedding."""
+    return escape(str(value))
 
 
 def render_memo_pdf(memo: CreditMemo) -> bytes:
     app = memo.application
     m = memo.risk_metrics
 
-    conditions_html = "".join(f"<li>{c}</li>" for c in memo.conditions)
+    conditions_html = "".join(f"<li>{_esc(c)}</li>" for c in memo.conditions)
 
     ltv_row = ""
     if m.loan_to_value is not None:
@@ -44,21 +50,21 @@ def render_memo_pdf(memo: CreditMemo) -> bytes:
   </div>
 
   <div class="meta">
-    <span><strong>Client:</strong> {app.client_name}</span>
-    <span><strong>Product:</strong> {app.product_type.value.replace('_', ' ').title()}</span>
+    <span><strong>Client:</strong> {_esc(app.client_name)}</span>
+    <span><strong>Product:</strong> {_esc(app.product_type.value.replace('_', ' ').title())}</span>
     <span><strong>Amount:</strong> EUR {app.requested_amount:,.0f}</span>
-    <span><strong>Generated:</strong> {memo.generated_at}</span>
+    <span><strong>Generated:</strong> {_esc(memo.generated_at)}</span>
   </div>
 
   <h2>Executive Summary</h2>
-  <div class="section">{memo.executive_summary}</div>
+  <div class="section">{_esc(memo.executive_summary)}</div>
 
   <h2>Client Profile</h2>
   <table>
     <tr><th>Field</th><th>Detail</th></tr>
-    <tr><td>Client Type</td><td>{app.client_type.value.upper()}</td></tr>
-    <tr><td>Registration</td><td>{app.registration_number}</td></tr>
-    <tr><td>Industry</td><td>{app.industry}</td></tr>
+    <tr><td>Client Type</td><td>{_esc(app.client_type.value.upper())}</td></tr>
+    <tr><td>Registration</td><td>{_esc(app.registration_number)}</td></tr>
+    <tr><td>Industry</td><td>{_esc(app.industry)}</td></tr>
     <tr><td>Years in Business</td><td>{app.years_in_business}</td></tr>
     <tr><td>Employees</td><td>{app.employee_count or 'N/A'}</td></tr>
     <tr><td>Existing Client</td><td>{'Yes' if app.existing_client else 'No'}</td></tr>
@@ -75,7 +81,7 @@ def render_memo_pdf(memo: CreditMemo) -> bytes:
   </table>
 
   <h2>Financial Analysis</h2>
-  <div class="section">{memo.financial_analysis}</div>
+  <div class="section">{_esc(memo.financial_analysis)}</div>
 
   <h2>Risk Metrics</h2>
   <table>
@@ -93,13 +99,13 @@ def render_memo_pdf(memo: CreditMemo) -> bytes:
   </table>
 
   <h2>Risk Assessment</h2>
-  <div class="section">{memo.risk_assessment}</div>
+  <div class="section">{_esc(memo.risk_assessment)}</div>
 
   <h2>Collateral Analysis</h2>
-  <div class="section">{memo.collateral_analysis}</div>
+  <div class="section">{_esc(memo.collateral_analysis)}</div>
 
   <h2>Recommendation</h2>
-  <div class="recommendation">{memo.recommendation}</div>
+  <div class="recommendation">{_esc(memo.recommendation)}</div>
 
   <h2>Conditions & Covenants</h2>
   <ol class="conditions">{conditions_html}</ol>

@@ -2,10 +2,21 @@
 
 import json
 import os
+from pydantic import BaseModel, Field
 from google import genai
 from src.models import ApplicationData, RiskMetrics
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+
+class MemoSections(BaseModel):
+    """Schema for structured AI output — enforced by Gemini response_schema."""
+    executive_summary: str = Field(description="2-3 sentences summarizing the request, client profile, and headline recommendation")
+    financial_analysis: str = Field(description="3-5 sentences analyzing financial position using provided metrics")
+    risk_assessment: str = Field(description="3-5 sentences on key risks and mitigants, specific to this client")
+    collateral_analysis: str = Field(description="2-3 sentences on collateral adequacy or note if unsecured")
+    recommendation: str = Field(description="1-2 sentences: APPROVE, APPROVE WITH CONDITIONS, or DECLINE with justification")
+    conditions: list[str] = Field(description="3-6 specific conditions/covenants for approval")
 
 SYSTEM_PROMPT = """You are a senior credit analyst at FinServe, a mid-size financial services company.
 You write professional credit memos for the credit committee. Your writing is:
@@ -63,15 +74,7 @@ ADDITIONAL NOTES: {app.additional_notes or 'None'}
 
     user_prompt = f"""{data_context}
 
-Generate the following sections as a JSON object with these exact keys:
-1. "executive_summary" — 2-3 sentences summarizing the request, client profile, and headline recommendation.
-2. "financial_analysis" — 3-5 sentences analyzing the financial position using the provided metrics. Reference specific ratios.
-3. "risk_assessment" — 3-5 sentences on key risks and mitigants. Be specific to this client.
-4. "collateral_analysis" — 2-3 sentences on collateral adequacy (or note if unsecured).
-5. "recommendation" — 1-2 sentences with APPROVE, APPROVE WITH CONDITIONS, or DECLINE and brief justification.
-6. "conditions" — a JSON array of 3-6 specific conditions/covenants for approval (or conditions to re-apply if declined).
-
-Return ONLY the JSON object, no markdown formatting."""
+Generate the credit memo sections. Be specific to this client and reference the provided metrics."""
 
     try:
         response = client.models.generate_content(
@@ -81,6 +84,8 @@ Return ONLY the JSON object, no markdown formatting."""
                 system_instruction=SYSTEM_PROMPT,
                 temperature=0.3,
                 max_output_tokens=2000,
+                response_mime_type="application/json",
+                response_schema=MemoSections,
             ),
         )
     except Exception as e:
@@ -90,9 +95,6 @@ Return ONLY the JSON object, no markdown formatting."""
         raise RuntimeError(f"Gemini API error: {error_msg}")
 
     text = response.text.strip()
-    # Handle potential markdown wrapping
-    if text.startswith("```"):
-        text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
     try:
         return json.loads(text)

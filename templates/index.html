@@ -409,15 +409,15 @@ form.onsubmit = async (e) => {
 };
 
 document.getElementById('downloadPdf').onclick = async () => {
-  if (!lastFormData) return;
+  if (!lastMemoData) return;
   const btn = document.getElementById('downloadPdf');
   btn.disabled = true;
-  btn.textContent = '⏳ Generating PDF...';
+  btn.textContent = '⏳ Rendering PDF...';
   try {
-    const resp = await fetch('/api/generate/pdf', {
+    const resp = await fetch('/api/memo/pdf', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(lastFormData),
+      body: JSON.stringify(lastMemoData),
     });
     const blob = await resp.blob();
     const url = URL.createObjectURL(blob);

@@ -59,10 +59,19 @@ python3 -m uvicorn src.app:app --host 0.0.0.0 --port 8000
 │   ├── 01_techflow_solutions.json    (strong SME — AA rating)
 │   ├── 02_green_harvest_farms.json   (moderate — BBB rating)
 │   └── 03_urban_style_retail.json    (high-risk — BB/B rating)
+├── tests/                  # Unit tests (risk engine)
 ├── docs/                   # Assessment presentation & task description
 ├── Dockerfile              # Docker build (Python 3.12 + WeasyPrint deps)
 └── requirements.txt
 ```
+
+## Tests
+
+```bash
+python3 -m pytest tests/ -v
+```
+
+15 tests covering financial ratio calculations, risk rating boundaries, and all three sample applications.
 
 ## API Endpoints
 
@@ -73,6 +82,7 @@ python3 -m uvicorn src.app:app --host 0.0.0.0 --port 8000
 | GET | `/api/samples/{filename}` | Get sample data |
 | POST | `/api/generate` | Generate credit memo (JSON) |
 | POST | `/api/generate/pdf` | Generate credit memo (PDF download) |
+| POST | `/api/memo/pdf` | Convert existing memo to PDF (no AI re-call) |
 
 ## Tech Stack
 
