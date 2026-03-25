@@ -18,9 +18,18 @@ User Input (Web UI) → FastAPI → Risk Engine (deterministic) → Gemini API (
 
 Key design decision: **AI writes the narrative; code computes the numbers.** This separation is critical in financial services — risk metrics must be reproducible and auditable.
 
+## Requirements
+
+- **Python 3.12+**
+- System libraries for PDF generation (Ubuntu/Debian): `libpango-1.0-0`, `libpangocairo-1.0-0`, `libgdk-pixbuf2.0-0`, `libcairo2`
+- Google Gemini API key ([get one here](https://aistudio.google.com/apikey))
+
 ## Quick Start
 
 ```bash
+# Python 3.12+ required
+python3 --version
+
 # Install dependencies
 pip install -r requirements.txt
 
