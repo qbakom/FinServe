@@ -4,7 +4,7 @@ Computes financial ratios and a composite risk score without AI —
 the LLM is only used for narrative generation, not for risk decisions.
 """
 
-from models import ApplicationData, RiskMetrics
+from src.models import ApplicationData, RiskMetrics
 
 
 def compute_risk_metrics(app: ApplicationData) -> RiskMetrics:

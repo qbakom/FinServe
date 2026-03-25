@@ -3,7 +3,7 @@
 import json
 import os
 from google import genai
-from models import ApplicationData, RiskMetrics
+from src.models import ApplicationData, RiskMetrics
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 

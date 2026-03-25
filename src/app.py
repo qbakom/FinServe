@@ -6,19 +6,19 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, Response
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from models import ApplicationData, CreditMemo
-from risk_engine import compute_risk_metrics
-from memo_generator import generate_memo_sections
-from pdf_export import render_memo_pdf
+from src.models import ApplicationData, CreditMemo
+from src.risk_engine import compute_risk_metrics
+from src.memo_generator import generate_memo_sections
+from src.pdf_export import render_memo_pdf
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(title="FinServe Credit Memo Generator", version="1.0.0")
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
-SAMPLE_DATA_DIR = Path("sample_data")
+SAMPLE_DATA_DIR = BASE_DIR / "sample_data"
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -95,4 +95,4 @@ async def generate_pdf(app_data: ApplicationData):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("src.app:app", host="0.0.0.0", port=8000, reload=True)

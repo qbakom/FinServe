@@ -40,25 +40,27 @@ apt-get install -y libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libcair
 export GEMINI_API_KEY=your_key_here
 
 # Run
-python3 app.py
+python3 -m uvicorn src.app:app --host 0.0.0.0 --port 8000
 # Open http://localhost:8000
 ```
 
 ## Project Structure
 
 ```
-├── app.py                  # FastAPI application (routes, orchestration)
-├── models.py               # Pydantic data models
-├── risk_engine.py          # Deterministic risk scoring engine
-├── memo_generator.py       # AI narrative generation (Gemini API)
-├── pdf_export.py           # WeasyPrint PDF rendering
-├── templates/index.html    # Web UI (single-page form + memo preview)
+├── src/                    # Application source code
+│   ├── app.py              # FastAPI application (routes, orchestration)
+│   ├── models.py           # Pydantic data models
+│   ├── risk_engine.py      # Deterministic risk scoring engine
+│   ├── memo_generator.py   # AI narrative generation (Gemini API)
+│   └── pdf_export.py       # WeasyPrint PDF rendering
+├── templates/
+│   └── index.html          # Web UI (single-page form + memo preview)
 ├── sample_data/            # 3 realistic sample applications
 │   ├── 01_techflow_solutions.json    (strong SME — AA rating)
 │   ├── 02_green_harvest_farms.json   (moderate — BBB rating)
 │   └── 03_urban_style_retail.json    (high-risk — BB/B rating)
-├── presentation.html       # Assessment presentation source
-├── presentation_task.pdf   # Assessment presentation (PDF)
+├── docs/                   # Assessment presentation & task description
+├── Dockerfile              # Docker build (Python 3.12 + WeasyPrint deps)
 └── requirements.txt
 ```
 

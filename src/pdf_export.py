@@ -1,6 +1,6 @@
 """PDF export for credit memos using WeasyPrint."""
 
-from models import CreditMemo
+from src.models import CreditMemo
 
 
 def render_memo_pdf(memo: CreditMemo) -> bytes:
