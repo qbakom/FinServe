@@ -85,22 +85,17 @@
 <h2>Implementation Walkthrough</h2>
 
 <h3>Architecture</h3>
-<div class="arch-box">
-  User Input (Web UI) → FastAPI Backend → Risk Engine (deterministic) → LLM (Gemini) → Credit Memo → PDF Export
-  <br><br>
-  ┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────┐
-  │  Web UI      │────▶│  FastAPI      │────▶│ Risk Engine │────▶│ Gemini   │
-  │  (HTML/JS)   │     │  /api/generate│     │ (Python)    │     │ API      │
-  └─────────────┘     └──────┬───────┘     └─────────────┘     └────┬─────┘
-                             │                                       │
-                             │◀──────────── Credit Memo JSON ◀───────┘
-                             │
-                       ┌─────▼───────┐
-                       │ WeasyPrint  │
-                       │ PDF Export  │
-                       └─────────────┘
-</div>
+<table style="font-size: 9.5pt;">
+  <tr><th style="width: 30%;">Stage</th><th>Description</th></tr>
+  <tr><td><strong>1. Web UI</strong> (HTML/JS)</td><td>User fills in client profile, financials, and facility request via a single-page form</td></tr>
+  <tr><td><strong>2. FastAPI</strong> <code>/api/generate</code></td><td>Receives validated input (Pydantic), orchestrates the pipeline</td></tr>
+  <tr><td><strong>3. Risk Engine</strong> (Python)</td><td>Computes all financial ratios and risk rating — deterministic, no AI</td></tr>
+  <tr><td><strong>4. Gemini API</strong></td><td>Receives pre-computed metrics + structured data, generates narrative sections via <code>response_schema</code></td></tr>
+  <tr><td><strong>5. PDF Export</strong> (WeasyPrint)</td><td>Renders the complete credit memo as a professional A4 PDF</td></tr>
+</table>
+<p style="font-size: 9pt; color: #6c6c8a; margin-top: 4px;">Flow: Web UI → FastAPI → Risk Engine → Gemini → Credit Memo JSON → WeasyPrint → PDF</p>
 
+<div class="page-break"></div>
 <h3>Key Components</h3>
 <table>
   <tr><th>Component</th><th>File</th><th>What it does</th></tr>
@@ -127,27 +122,28 @@
 <h2>How I Would Extend This</h2>
 
 <table>
-  <tr><th>Extension</th><th>Effort</th><th>Description</th></tr>
-  <tr><td>CRM Integration</td><td>1–2 weeks</td><td>Connect to Salesforce/HubSpot API to auto-pull client data instead of manual entry. Webhook trigger when an application reaches "ready for review" stage.</td></tr>
-  <tr><td>Document Upload & Extraction</td><td>2–3 weeks</td><td>Accept financial statements (PDF/Excel) and use OCR + AI to extract key figures automatically. Reduces data entry to uploading a file.</td></tr>
-  <tr><td>Multi-model with Human-in-the-Loop</td><td>1 week</td><td>Run multiple LLMs (Claude + Gemini) and present both drafts. Analyst picks the best one or edits a hybrid — building training data for fine-tuning.</td></tr>
-  <tr><td>Approval Workflow</td><td>1–2 weeks</td><td>Route generated memos through a review/approval chain. Track who approved, when, with what modifications. Integrate with email/Slack notifications.</td></tr>
-  <tr><td>Historical Benchmarking</td><td>2 weeks</td><td>Store all generated memos in a database. When a new application comes in, show comparable past cases ("similar to XYZ Ltd which was approved at 5.2% rate"). Helps analysts calibrate.</td></tr>
-  <tr><td>Compliance Layer</td><td>1–2 weeks</td><td>Add automated KYC/AML checks — verify registration numbers against company registries, screen against sanctions lists, flag PEPs. Embed results in the memo.</td></tr>
+  <tr><th>Extension</th><th>Description</th></tr>
+  <tr><td>CRM Integration</td><td>Connect to Salesforce/HubSpot API to auto-pull client data instead of manual entry. Webhook trigger when an application reaches "ready for review" stage.</td></tr>
+  <tr><td>Document Upload & Extraction</td><td>Accept financial statements (PDF/Excel) and use OCR + AI to extract key figures automatically. Reduces data entry to uploading a file.</td></tr>
+  <tr><td>Multi-model with Human-in-the-Loop</td><td>Run multiple LLMs (Claude + Gemini) and present both drafts. Analyst picks the best one or edits a hybrid — building training data for fine-tuning.</td></tr>
+  <tr><td>Approval Workflow</td><td>Route generated memos through a review/approval chain. Track who approved, when, with what modifications. Integrate with email/Slack notifications.</td></tr>
+  <tr><td>Historical Benchmarking</td><td>Store all generated memos in a database. When a new application comes in, show comparable past cases ("similar to XYZ Ltd which was approved at 5.2% rate"). Helps analysts calibrate.</td></tr>
+  <tr><td>Compliance Layer</td><td>Add automated KYC/AML checks — verify registration numbers against company registries, screen against sanctions lists, flag PEPs. Embed results in the memo.</td></tr>
 </table>
 
 <h3>Production Readiness Checklist</h3>
-<ul>
-  <li>Authentication & RBAC (analyst, reviewer, committee roles)</li>
-  <li>Audit logging — every generated memo stored with inputs, model version, and timestamp</li>
-  <li>Rate limiting and cost controls on LLM API calls</li>
-  <li><s>Input sanitization</s> ✓ Done — HTML escaping on all user inputs in PDF, Pydantic validation on API input</li>
-  <li><s>Structured AI output</s> ✓ Done — Gemini <code>response_schema</code> enforces output contract</li>
-  <li><s>Error handling</s> ✓ Done — rate limits, API errors, malformed responses handled with user-facing messages</li>
-  <li><s>Containerization</s> ✓ Done — Dockerfile with healthcheck</li>
-  <li><s>Unit tests</s> ✓ Done — 15 tests covering the risk engine</li>
-  <li>Data encryption at rest and in transit (financial data sensitivity)</li>
-</ul>
+<table>
+  <tr><th style="width: 70px;">Status</th><th>Item</th></tr>
+  <tr><td><span style="color: #28a745; font-weight: 700;">Done</span></td><td>Input sanitization — HTML escaping on all user inputs in PDF, Pydantic validation on API input</td></tr>
+  <tr><td><span style="color: #28a745; font-weight: 700;">Done</span></td><td>Structured AI output — Gemini <code>response_schema</code> enforces output contract</td></tr>
+  <tr><td><span style="color: #28a745; font-weight: 700;">Done</span></td><td>Error handling — rate limits, API errors, malformed responses handled with user-facing messages</td></tr>
+  <tr><td><span style="color: #28a745; font-weight: 700;">Done</span></td><td>Containerization — Dockerfile with healthcheck</td></tr>
+  <tr><td><span style="color: #28a745; font-weight: 700;">Done</span></td><td>Unit tests — 15 tests covering the risk engine</td></tr>
+  <tr><td><span style="color: #6c6c8a;">Todo</span></td><td>Authentication & RBAC (analyst, reviewer, committee roles)</td></tr>
+  <tr><td><span style="color: #6c6c8a;">Todo</span></td><td>Audit logging — every generated memo stored with inputs, model version, and timestamp</td></tr>
+  <tr><td><span style="color: #6c6c8a;">Todo</span></td><td>Rate limiting and cost controls on LLM API calls</td></tr>
+  <tr><td><span style="color: #6c6c8a;">Todo</span></td><td>Data encryption at rest and in transit (financial data sensitivity)</td></tr>
+</table>
 
 <div class="footer" style="margin-top: 40px;">
   FinServe AI Credit Memo Generator — Python 3.12, FastAPI, Gemini 2.5 Flash, WeasyPrint, 15 unit tests<br>
