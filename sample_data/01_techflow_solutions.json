@@ -1,0 +1,22 @@
+{
+  "client_name": "TechFlow Solutions GmbH",
+  "client_type": "sme",
+  "registration_number": "HRB 12345",
+  "industry": "Software & IT Services",
+  "years_in_business": 7,
+  "employee_count": 45,
+  "annual_revenue": 3200000,
+  "net_profit": 480000,
+  "total_assets": 2100000,
+  "total_liabilities": 850000,
+  "existing_debt": 200000,
+  "product_type": "term_loan",
+  "requested_amount": 500000,
+  "purpose": "Expansion of development team and office space to support new enterprise SaaS product launch",
+  "proposed_tenor_months": 48,
+  "collateral_description": "Commercial office property at Friedrichstraße 42, Berlin",
+  "collateral_value": 750000,
+  "existing_client": true,
+  "payment_history": "Client since 2021. Previous EUR 150k facility repaid on schedule with no missed payments.",
+  "additional_notes": "Strong recurring revenue base (85% SaaS subscriptions). Key client: Deutsche Telekom."
+}

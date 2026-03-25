@@ -1,0 +1,22 @@
+{
+  "client_name": "Urban Style Retail Ltd",
+  "client_type": "sme",
+  "registration_number": "UK-09876543",
+  "industry": "Retail — Fashion & Apparel",
+  "years_in_business": 3,
+  "employee_count": 22,
+  "annual_revenue": 1800000,
+  "net_profit": -45000,
+  "total_assets": 950000,
+  "total_liabilities": 720000,
+  "existing_debt": 350000,
+  "product_type": "revolving_credit",
+  "requested_amount": 400000,
+  "purpose": "Working capital for seasonal inventory build-up ahead of autumn/winter collection launch",
+  "proposed_tenor_months": 12,
+  "collateral_description": "Inventory (fashion goods) and receivables",
+  "collateral_value": 300000,
+  "existing_client": false,
+  "payment_history": null,
+  "additional_notes": "Rapid revenue growth (60% YoY) but not yet profitable. E-commerce channel accounts for 40% of revenue and growing."
+}

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FinServe — AI Credit Memo Generator</title>
+<style>
+  :root {
+    --bg: #f5f5fa;
+    --card: #ffffff;
+    --primary: #1a1a2e;
+    --accent: #4361ee;
+    --accent-hover: #3a56d4;
+    --text: #1a1a2e;
+    --muted: #6c6c8a;
+    --border: #e0e0e8;
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* Header */
+  .topbar { background: var(--primary); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar h1 { color: #fff; font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+  .topbar .badge { background: var(--accent); color: #fff; font-size: 11px; padding: 3px 10px; border-radius: 12px; }
+
+  /* Layout */
+  .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+  .grid { display: grid; grid-template-columns: 420px 1fr; gap: 24px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Cards */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .icon { width: 20px; height: 20px; }
+
+  /* Form */
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 14px; font-family: inherit; transition: border-color 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(67,97,238,0.1);
+  }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .checkbox-row { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+  .checkbox-row input { width: auto; }
+  .checkbox-row label { font-size: 13px; color: var(--text); text-transform: none; letter-spacing: 0; }
+
+  .section-title { font-size: 13px; font-weight: 700; color: var(--accent); margin: 18px 0 8px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+  /* Buttons */
+  .btn { padding: 10px 20px; border: none; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { background: #b0b0c0; cursor: wait; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 6px 14px; }
+  .btn-outline:hover { background: var(--bg); }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+
+  /* Sample picker */
+  .samples { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .sample-btn { font-size: 12px; padding: 6px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 16px; cursor: pointer; transition: all 0.2s; }
+  .sample-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Result area */
+  .result-placeholder { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .result-placeholder svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.3; }
+
+  /* Memo display */
+  .memo { display: none; }
+  .memo h3 { font-size: 14px; font-weight: 700; margin: 20px 0 8px; color: var(--primary); }
+  .memo h3:first-child { margin-top: 0; }
+  .memo p { font-size: 13px; line-height: 1.6; color: #333; margin-bottom: 8px; }
+
+  .memo-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--primary); }
+  .memo-header h2 { margin-bottom: 0; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0; }
+  .metric-card { background: var(--bg); border-radius: 6px; padding: 10px 14px; text-align: center; }
+  .metric-card .value { font-size: 20px; font-weight: 700; color: var(--primary); }
+  .metric-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+  .risk-badge { display: inline-block; padding: 4px 16px; border-radius: 16px; font-weight: 700; font-size: 16px; }
+  .risk-low { background: #d4edda; color: #155724; }
+  .risk-mid { background: #fff3cd; color: #856404; }
+  .risk-high { background: #f8d7da; color: #721c24; }
+
+  .conditions-list { list-style: decimal; padding-left: 20px; }
+  .conditions-list li { font-size: 13px; line-height: 1.5; margin-bottom: 6px; }
+
+  .recommendation-box { background: #f0f4ff; padding: 14px 18px; border-left: 4px solid var(--accent); border-radius: 0 6px 6px 0; margin: 8px 0; }
+
+  /* Loading */
+  .spinner { display: none; text-align: center; padding: 40px; }
+  .spinner.active { display: block; }
+  .spinner svg { animation: spin 1s linear infinite; width: 40px; height: 40px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .actions { display: flex; gap: 8px; margin-top: 16px; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <h1>FinServe — Credit Memo Generator</h1>
+    <span class="badge">AI-Powered PoC</span>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <!-- LEFT: Input Form -->
+      <div>
+        <div class="card">
+          <h2>Application Data</h2>
+          <div class="samples" id="samples">
+            <span style="font-size:12px;color:var(--muted);line-height:28px;">Load sample:</span>
+          </div>
+
+          <form id="appForm">
+            <div class="section-title">Client Information</div>
+            <div class="form-group">
+              <label>Client Name</label>
+              <input name="client_name" required placeholder="Legal entity name">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Client Type</label>
+                <select name="client_type">
+                  <option value="sme">SME</option>
+                  <option value="retail">Retail</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Registration #</label>
+                <input name="registration_number" required placeholder="e.g. HRB 12345">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Industry</label>
+                <input name="industry" required placeholder="e.g. Manufacturing">
+              </div>
+              <div class="form-group">
+                <label>Years in Business</label>
+                <input name="years_in_business" type="number" min="0" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Employee Count</label>
+              <input name="employee_count" type="number" min="1">
+            </div>
+
+            <div class="section-title">Financials (EUR)</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Annual Revenue</label>
+                <input name="annual_revenue" type="number" step="1000" required>
+              </div>
+              <div class="form-group">
+                <label>Net Profit</label>
+                <input name="net_profit" type="number" step="1000" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Total Assets</label>
+                <input name="total_assets" type="number" step="1000" required>
+              </div>
+              <div class="form-group">
+                <label>Total Liabilities</label>
+                <input name="total_liabilities" type="number" step="1000" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Existing Debt</label>
+              <input name="existing_debt" type="number" step="1000" value="0">
+            </div>
+
+            <div class="section-title">Facility Request</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Product Type</label>
+                <select name="product_type">
+                  <option value="term_loan">Term Loan</option>
+                  <option value="revolving_credit">Revolving Credit</option>
+                  <option value="invoice_financing">Invoice Financing</option>
+                  <option value="equipment_lease">Equipment Lease</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Requested Amount (EUR)</label>
+                <input name="requested_amount" type="number" step="1000" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Purpose</label>
+              <textarea name="purpose" required placeholder="Purpose of the facility"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Proposed Tenor (months)</label>
+              <input name="proposed_tenor_months" type="number" min="1" required>
+            </div>
+            <div class="form-group">
+              <label>Collateral Description</label>
+              <textarea name="collateral_description" placeholder="Describe collateral (if any)"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Collateral Value (EUR)</label>
+              <input name="collateral_value" type="number" step="1000">
+            </div>
+
+            <div class="section-title">Additional</div>
+            <div class="checkbox-row">
+              <input type="checkbox" name="existing_client" id="existing_client">
+              <label for="existing_client">Existing FinServe client</label>
+            </div>
+            <div class="form-group">
+              <label>Payment History</label>
+              <textarea name="payment_history" placeholder="Previous facility history (if any)"></textarea>
+            </div>
+            <div class="form-group">
+              <label>Additional Notes</label>
+              <textarea name="additional_notes" placeholder="Any other relevant information"></textarea>
+            </div>
+
+            <div style="margin-top:18px; display:flex; gap:8px;">
+              <button type="submit" class="btn btn-primary" id="generateBtn">Generate Credit Memo</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT: Result -->
+      <div>
+        <div class="card" style="min-height:400px; position:sticky; top:24px;">
+          <div class="result-placeholder" id="placeholder">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p style="font-size:15px;font-weight:500;">No memo generated yet</p>
+            <p style="font-size:13px;">Fill in the application data or load a sample, then click <strong>Generate Credit Memo</strong>.</p>
+          </div>
+
+          <div class="spinner" id="spinner">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <p style="margin-top:12px;font-weight:500;">Generating credit memo...</p>
+            <p style="font-size:12px;color:var(--muted);">AI is analyzing data and writing the memo. This takes ~10 seconds.</p>
+          </div>
+
+          <div class="memo" id="memo">
+            <div class="memo-header">
+              <h2 style="font-size:16px;">Credit Memo — <span id="memoClient"></span></h2>
+              <span style="font-size:11px;color:var(--muted);" id="memoDate"></span>
+            </div>
+
+            <h3>Executive Summary</h3>
+            <p id="memoSummary"></p>
+
+            <h3>Risk Metrics</h3>
+            <div class="metrics-grid" id="metricsGrid"></div>
+
+            <h3>Financial Analysis</h3>
+            <p id="memoFinancial"></p>
+
+            <h3>Risk Assessment</h3>
+            <p id="memoRisk"></p>
+
+            <h3>Collateral Analysis</h3>
+            <p id="memoCollateral"></p>
+
+            <h3>Recommendation</h3>
+            <div class="recommendation-box" id="memoRecommendation"></div>
+
+            <h3>Conditions & Covenants</h3>
+            <ol class="conditions-list" id="memoConditions"></ol>
+
+            <div class="actions">
+              <button class="btn btn-outline btn-sm" id="downloadPdf">⬇ Download PDF</button>
+              <button class="btn btn-outline btn-sm" id="downloadJson">⬇ Download JSON</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const form = document.getElementById('appForm');
+const placeholder = document.getElementById('placeholder');
+const spinner = document.getElementById('spinner');
+const memo = document.getElementById('memo');
+let lastFormData = null;
+let lastMemoData = null;
+
+// Load samples
+fetch('/api/samples').then(r => r.json()).then(samples => {
+  const container = document.getElementById('samples');
+  samples.forEach(s => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'sample-btn';
+    btn.textContent = s.client_name.split(' ').slice(0,2).join(' ');
+    btn.onclick = () => loadSample(s.filename);
+    container.appendChild(btn);
+  });
+});
+
+async function loadSample(filename) {
+  const data = await fetch(`/api/samples/${filename}`).then(r => r.json());
+  Object.entries(data).forEach(([key, val]) => {
+    const el = form.elements[key];
+    if (!el) return;
+    if (el.type === 'checkbox') { el.checked = !!val; }
+    else { el.value = val ?? ''; }
+  });
+}
+
+function getFormData() {
+  const fd = {};
+  const fields = ['client_name','client_type','registration_number','industry','years_in_business',
+    'employee_count','annual_revenue','net_profit','total_assets','total_liabilities','existing_debt',
+    'product_type','requested_amount','purpose','proposed_tenor_months','collateral_description',
+    'collateral_value','existing_client','payment_history','additional_notes'];
+  fields.forEach(f => {
+    const el = form.elements[f];
+    if (!el) return;
+    if (el.type === 'checkbox') { fd[f] = el.checked; }
+    else if (el.type === 'number') { fd[f] = el.value ? Number(el.value) : (f === 'existing_debt' ? 0 : null); }
+    else { fd[f] = el.value || null; }
+  });
+  return fd;
+}
+
+function riskBadgeClass(score) {
+  if (score <= 35) return 'risk-low';
+  if (score <= 65) return 'risk-mid';
+  return 'risk-high';
+}
+
+function renderMemo(data) {
+  lastMemoData = data;
+  const m = data.risk_metrics;
+  document.getElementById('memoClient').textContent = data.application.client_name;
+  document.getElementById('memoDate').textContent = data.generated_at;
+  document.getElementById('memoSummary').textContent = data.executive_summary;
+  document.getElementById('memoFinancial').textContent = data.financial_analysis;
+  document.getElementById('memoRisk').textContent = data.risk_assessment;
+  document.getElementById('memoCollateral').textContent = data.collateral_analysis;
+  document.getElementById('memoRecommendation').textContent = data.recommendation;
+
+  const metrics = [
+    { label: 'Risk Rating', value: `<span class="risk-badge ${riskBadgeClass(m.risk_score)}">${m.risk_rating}</span>` },
+    { label: 'Risk Score', value: `${m.risk_score}/100` },
+    { label: 'DSCR', value: `${m.debt_service_coverage}x` },
+    { label: 'Debt/Equity', value: `${m.debt_to_equity}x` },
+    { label: 'Leverage', value: `${m.leverage_ratio}x` },
+    { label: 'LTV', value: m.loan_to_value ? `${m.loan_to_value}x` : 'N/A' },
+  ];
+  document.getElementById('metricsGrid').innerHTML = metrics.map(m =>
+    `<div class="metric-card"><div class="value">${m.value}</div><div class="label">${m.label}</div></div>`
+  ).join('');
+
+  document.getElementById('memoConditions').innerHTML = data.conditions.map(c => `<li>${c}</li>`).join('');
+}
+
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+  placeholder.style.display = 'none';
+  memo.style.display = 'none';
+  spinner.classList.add('active');
+
+  try {
+    lastFormData = getFormData();
+    const resp = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lastFormData),
+    });
+    if (!resp.ok) {
+      const err = await resp.json();
+      alert('Error: ' + JSON.stringify(err.detail || err));
+      return;
+    }
+    const data = await resp.json();
+    renderMemo(data);
+    spinner.classList.remove('active');
+    memo.style.display = 'block';
+  } catch (err) {
+    alert('Error: ' + err.message);
+    spinner.classList.remove('active');
+    placeholder.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generate Credit Memo';
+  }
+};
+
+document.getElementById('downloadPdf').onclick = async () => {
+  if (!lastFormData) return;
+  const btn = document.getElementById('downloadPdf');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating PDF...';
+  try {
+    const resp = await fetch('/api/generate/pdf', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(lastFormData),
+    });
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = resp.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g,'') || 'credit_memo.pdf';
+    a.click();
+    URL.revokeObjectURL(url);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⬇ Download PDF';
+  }
+};
+
+document.getElementById('downloadJson').onclick = () => {
+  if (!lastMemoData) return;
+  const blob = new Blob([JSON.stringify(lastMemoData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `credit_memo_${lastMemoData.application.client_name.replace(/\s+/g,'_')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+</script>
+</body>
+</html>

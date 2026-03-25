@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { margin: 1.8cm 2cm; size: A4; }
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 10.5pt; color: #1a1a2e; line-height: 1.55; }
+  h1 { font-size: 22pt; margin: 0 0 4px; color: #1a1a2e; }
+  h2 { font-size: 14pt; color: #4361ee; margin: 22px 0 8px; border-bottom: 2px solid #e0e0e8; padding-bottom: 4px; }
+  h3 { font-size: 11pt; color: #1a1a2e; margin: 14px 0 4px; }
+  .subtitle { color: #6c6c8a; font-size: 11pt; margin-bottom: 18px; }
+  .problem-box { background: #f5f5fa; border-left: 4px solid #4361ee; padding: 10px 14px; margin: 10px 0; border-radius: 0 6px 6px 0; }
+  .problem-box .label { font-size: 9pt; font-weight: 700; color: #4361ee; text-transform: uppercase; letter-spacing: 0.5px; }
+  .solution-box { background: #f0fff4; border-left: 4px solid #28a745; padding: 10px 14px; margin: 6px 0 14px; border-radius: 0 6px 6px 0; }
+  .solution-box .label { font-size: 9pt; font-weight: 700; color: #28a745; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 8px 0; }
+  th, td { padding: 5px 8px; text-align: left; border-bottom: 1px solid #e0e0e8; }
+  th { background: #f5f5fa; font-weight: 600; font-size: 9pt; text-transform: uppercase; letter-spacing: 0.3px; }
+  .tag { display: inline-block; background: #e8ecff; color: #4361ee; font-size: 8pt; padding: 2px 8px; border-radius: 10px; font-weight: 600; margin-right: 4px; }
+  .impact { font-size: 9pt; color: #6c6c8a; font-style: italic; }
+  ul, ol { padding-left: 18px; margin: 4px 0; }
+  li { margin-bottom: 3px; }
+  .page-break { page-break-before: always; }
+  .arch-box { background: #f8f8fc; border: 1px solid #e0e0e8; border-radius: 6px; padding: 12px 16px; margin: 10px 0; font-family: 'Courier New', monospace; font-size: 9pt; line-height: 1.6; }
+  .highlight { background: #fff3cd; padding: 8px 14px; border-radius: 6px; margin: 10px 0; }
+  .footer { text-align: center; font-size: 8pt; color: #aaa; margin-top: 30px; }
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: Problems & Solutions -->
+<h1>FinServe — AI & Automation Opportunities</h1>
+<p class="subtitle">Assessment Task — Candidate Submission</p>
+
+<h2>Three Business Problems & Proposed Solutions</h2>
+
+<!-- Problem 1 -->
+<div class="problem-box">
+  <div class="label">Problem 1 — Manual Credit Memo Preparation</div>
+  <p>Credit & Operations staff (25 people) manually pull data from CRM and internal systems into Word/PDF templates to produce credit memos. Each memo takes 2–4 hours: gathering financials, computing ratios, writing the narrative, formatting, and routing for review. This creates bottlenecks at month-end, introduces copy-paste errors, and makes it hard to maintain consistent quality and risk language across analysts.</p>
+</div>
+<div class="solution-box">
+  <div class="label">Solution — AI Credit Memo Generator</div>
+  <p><strong>What:</strong> A web application that takes structured application data (client profile, financials, facility request), runs deterministic risk scoring (D/E, DSCR, LTV, leverage), and uses an LLM to generate a complete credit memo with executive summary, financial analysis, risk assessment, and recommendation — exportable as PDF.</p>
+  <p><strong>How:</strong> FastAPI backend + Gemini API for narrative generation. Risk metrics are computed deterministically (no AI hallucination on numbers). AI only writes the narrative sections using verified data. Output matches the format the credit committee expects.</p>
+  <p class="impact">Impact: ~70% time reduction per memo → frees 5–10 FTEs worth of capacity. Consistent quality. Faster turnaround for clients.</p>
+</div>
+
+<!-- Problem 2 -->
+<div class="problem-box">
+  <div class="label">Problem 2 — Unstructured Client Support</div>
+  <p>The 10-person support team answers tickets and emails individually without a shared knowledge base or standard responses. Common questions about loan status, repayment schedules, and document requirements get re-answered from scratch. Response times vary, tone is inconsistent, and new hires take months to ramp up. No analytics on ticket categories or resolution times.</p>
+</div>
+<div class="solution-box">
+  <div class="label">Solution — AI Support Copilot with Knowledge Base</div>
+  <p><strong>What:</strong> RAG-based system that indexes FinServe's product documentation, FAQs, policies, and past resolved tickets. When a new ticket arrives, it classifies it (status inquiry / complaint / document request / general), retrieves relevant context, and drafts a response for agent review. Auto-routes complex cases to the right specialist.</p>
+  <p><strong>How:</strong> Embed documents into a vector store (e.g., Pinecone/pgvector). On each inbound ticket, classify intent, retrieve top-k relevant chunks, generate a draft reply. Agent reviews and sends — building a feedback loop that improves drafts over time.</p>
+  <p class="impact">Impact: 40–60% faster first response. Consistent messaging. Faster onboarding. Ticket analytics as a byproduct.</p>
+</div>
+
+<!-- Problem 3 -->
+<div class="problem-box">
+  <div class="label">Problem 3 — Manual Regulatory Reporting</div>
+  <p>Finance & Risk teams (27 people combined) pull data from core banking and CRM into Excel for monthly, quarterly, and regulatory reports. This involves manual data extraction, reconciliation across systems, formula-heavy spreadsheets, and manual formatting to meet regulator templates. Errors are caught late, and the process consumes the last week of every quarter.</p>
+</div>
+<div class="solution-box">
+  <div class="label">Solution — Automated Report Pipeline</div>
+  <p><strong>What:</strong> An ETL pipeline that connects to core systems via API, reconciles data automatically, and generates reports in the required regulatory format. AI assists with anomaly detection (flagging unusual entries for human review) and narrative summaries for management commentary sections.</p>
+  <p><strong>How:</strong> Python-based pipeline (Airflow/Prefect) pulling from core banking APIs → data validation & reconciliation → template rendering (Excel/PDF). LLM generates the management commentary. Anomaly detection via statistical rules + LLM explanation of flagged items.</p>
+  <p class="impact">Impact: Reporting cycle cut from 5 days to 1 day. Fewer errors. Audit trail built in. Staff freed for analysis over data wrangling.</p>
+</div>
+
+<!-- PAGE 2: Why This Solution + Implementation -->
+<div class="page-break"></div>
+<h2>Why I Built the Credit Memo Generator</h2>
+
+<table>
+  <tr><th>Criterion</th><th>Rationale</th></tr>
+  <tr><td>Business impact</td><td>Targets the largest department (25 people). Credit memos are the core deliverable of the lending business — every deal requires one. Even modest time savings multiply across hundreds of applications per year.</td></tr>
+  <tr><td>Demonstrability</td><td>A credit memo is a tangible, reviewable artifact. The PoC produces a real document that a credit committee could evaluate — unlike a chatbot or pipeline that needs production data to demo.</td></tr>
+  <tr><td>Architecture shows judgment</td><td>The design deliberately separates <strong>deterministic risk scoring</strong> (financial ratios, risk rating) from <strong>AI narrative generation</strong>. This is a critical design choice in financial services — you don't let an LLM compute your DSCR or decide your risk rating. AI writes the story; math computes the numbers.</td></tr>
+  <tr><td>Extensibility</td><td>The same architecture extends naturally to proposal generation (Sales), KYC summary reports (Compliance), and portfolio reviews (Risk).</td></tr>
+</table>
+
+<h2>Implementation Walkthrough</h2>
+
+<h3>Architecture</h3>
+<div class="arch-box">
+  User Input (Web UI) → FastAPI Backend → Risk Engine (deterministic) → LLM (Gemini) → Credit Memo → PDF Export
+  <br><br>
+  ┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────┐
+  │  Web UI      │────▶│  FastAPI      │────▶│ Risk Engine │────▶│ Gemini   │
+  │  (HTML/JS)   │     │  /api/generate│     │ (Python)    │     │ API      │
+  └─────────────┘     └──────┬───────┘     └─────────────┘     └────┬─────┘
+                             │                                       │
+                             │◀──────────── Credit Memo JSON ◀───────┘
+                             │
+                       ┌─────▼───────┐
+                       │ WeasyPrint  │
+                       │ PDF Export  │
+                       └─────────────┘
+</div>
+
+<h3>Key Components</h3>
+<table>
+  <tr><th>Component</th><th>File</th><th>What it does</th></tr>
+  <tr><td>Data Models</td><td><code>models.py</code></td><td>Pydantic models for ApplicationData, RiskMetrics, CreditMemo — enforces data validation at input</td></tr>
+  <tr><td>Risk Engine</td><td><code>risk_engine.py</code></td><td>Computes D/E, DSCR, current ratio, leverage, LTV, composite risk score (1–100), and letter rating (AAA→CCC). <strong>No AI involved</strong> — pure deterministic logic</td></tr>
+  <tr><td>Memo Generator</td><td><code>memo_generator.py</code></td><td>Sends structured data + pre-computed metrics to Gemini with a strict prompt. AI generates executive summary, financial analysis, risk assessment, collateral analysis, recommendation, and conditions</td></tr>
+  <tr><td>PDF Export</td><td><code>pdf_export.py</code></td><td>Renders the memo as a professional A4 PDF using WeasyPrint — styled to look like a real credit committee document</td></tr>
+  <tr><td>Web UI</td><td><code>templates/index.html</code></td><td>Single-page form with sample data loading, live memo preview, and PDF/JSON download</td></tr>
+</table>
+
+<h3>Design Decisions</h3>
+<ul>
+  <li><strong>Deterministic risk scoring:</strong> Financial ratios and risk ratings are computed by code, not by AI. This is non-negotiable in financial services — you need reproducible, auditable risk numbers.</li>
+  <li><strong>AI for narrative only:</strong> The LLM receives pre-computed metrics and writes the human-readable analysis. It cannot change the numbers, only interpret them.</li>
+  <li><strong>Structured output:</strong> The LLM is prompted to return JSON with defined keys, ensuring consistent memo structure across all applications.</li>
+  <li><strong>Sample data:</strong> Three realistic scenarios included (strong SME, moderate agricultural firm, high-risk retail startup) to demonstrate range of outputs.</li>
+</ul>
+
+<!-- PAGE 3: Extensions -->
+<div class="page-break"></div>
+<h2>How I Would Extend This</h2>
+
+<table>
+  <tr><th>Extension</th><th>Effort</th><th>Description</th></tr>
+  <tr><td>CRM Integration</td><td>1–2 weeks</td><td>Connect to Salesforce/HubSpot API to auto-pull client data instead of manual entry. Webhook trigger when an application reaches "ready for review" stage.</td></tr>
+  <tr><td>Document Upload & Extraction</td><td>2–3 weeks</td><td>Accept financial statements (PDF/Excel) and use OCR + AI to extract key figures automatically. Reduces data entry to uploading a file.</td></tr>
+  <tr><td>Multi-model with Human-in-the-Loop</td><td>1 week</td><td>Run multiple LLMs (Claude + Gemini) and present both drafts. Analyst picks the best one or edits a hybrid — building training data for fine-tuning.</td></tr>
+  <tr><td>Approval Workflow</td><td>1–2 weeks</td><td>Route generated memos through a review/approval chain. Track who approved, when, with what modifications. Integrate with email/Slack notifications.</td></tr>
+  <tr><td>Historical Benchmarking</td><td>2 weeks</td><td>Store all generated memos in a database. When a new application comes in, show comparable past cases ("similar to XYZ Ltd which was approved at 5.2% rate"). Helps analysts calibrate.</td></tr>
+  <tr><td>Compliance Layer</td><td>1–2 weeks</td><td>Add automated KYC/AML checks — verify registration numbers against company registries, screen against sanctions lists, flag PEPs. Embed results in the memo.</td></tr>
+</table>
+
+<h3>Production Readiness Checklist</h3>
+<ul>
+  <li>Authentication & RBAC (analyst, reviewer, committee roles)</li>
+  <li>Audit logging — every generated memo stored with inputs, model version, and timestamp</li>
+  <li>Rate limiting and cost controls on LLM API calls</li>
+  <li>Input sanitization and prompt injection prevention</li>
+  <li>Deployment: Docker container on cloud infrastructure with HTTPS</li>
+  <li>Data encryption at rest and in transit (financial data sensitivity)</li>
+</ul>
+
+<div class="footer" style="margin-top: 40px;">
+  FinServe AI Credit Memo Generator — Built with Python, FastAPI, Gemini API, WeasyPrint<br>
+  Source code: GitHub repository (attached)
+</div>
+
+</body>
+</html>

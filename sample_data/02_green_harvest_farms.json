@@ -1,0 +1,22 @@
+{
+  "client_name": "Green Harvest Farms Sp. z o.o.",
+  "client_type": "sme",
+  "registration_number": "KRS 0000567890",
+  "industry": "Agriculture & Food Processing",
+  "years_in_business": 12,
+  "employee_count": 85,
+  "annual_revenue": 8500000,
+  "net_profit": 510000,
+  "total_assets": 6200000,
+  "total_liabilities": 3800000,
+  "existing_debt": 1200000,
+  "product_type": "equipment_lease",
+  "requested_amount": 1200000,
+  "purpose": "Purchase of automated sorting and packaging line to increase processing capacity by 40%",
+  "proposed_tenor_months": 60,
+  "collateral_description": "The equipment itself (automated sorting line, Marel brand) + existing warehouse at Poznań Industrial Park",
+  "collateral_value": 1800000,
+  "existing_client": false,
+  "payment_history": null,
+  "additional_notes": "Seasonal revenue pattern (Q3-Q4 account for 60% of annual revenue). Long-term supply contracts with Biedronka and Lidl."
+}
