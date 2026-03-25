@@ -104,19 +104,22 @@
 <h3>Key Components</h3>
 <table>
   <tr><th>Component</th><th>File</th><th>What it does</th></tr>
-  <tr><td>Data Models</td><td><code>models.py</code></td><td>Pydantic models for ApplicationData, RiskMetrics, CreditMemo — enforces data validation at input</td></tr>
-  <tr><td>Risk Engine</td><td><code>risk_engine.py</code></td><td>Computes D/E, DSCR, current ratio, leverage, LTV, composite risk score (1–100), and letter rating (AAA→CCC). <strong>No AI involved</strong> — pure deterministic logic</td></tr>
-  <tr><td>Memo Generator</td><td><code>memo_generator.py</code></td><td>Sends structured data + pre-computed metrics to Gemini with a strict prompt. AI generates executive summary, financial analysis, risk assessment, collateral analysis, recommendation, and conditions</td></tr>
-  <tr><td>PDF Export</td><td><code>pdf_export.py</code></td><td>Renders the memo as a professional A4 PDF using WeasyPrint — styled to look like a real credit committee document</td></tr>
-  <tr><td>Web UI</td><td><code>templates/index.html</code></td><td>Single-page form with sample data loading, live memo preview, and PDF/JSON download</td></tr>
+  <tr><td>Data Models</td><td><code>src/models.py</code></td><td>Pydantic models for ApplicationData, RiskMetrics, CreditMemo — enforces data validation at input</td></tr>
+  <tr><td>Risk Engine</td><td><code>src/risk_engine.py</code></td><td>Computes D/E, DSCR, current ratio, leverage, LTV, composite risk score (1–100), and letter rating (AAA→CCC). <strong>No AI involved</strong> — pure deterministic logic. Covered by 15 unit tests</td></tr>
+  <tr><td>Memo Generator</td><td><code>src/memo_generator.py</code></td><td>Sends structured data + pre-computed metrics to Gemini with a strict prompt. Uses Gemini's <code>response_schema</code> with a Pydantic model (<code>MemoSections</code>) to enforce structured JSON output — no free-text parsing needed</td></tr>
+  <tr><td>PDF Export</td><td><code>src/pdf_export.py</code></td><td>Renders the memo as a professional A4 PDF using WeasyPrint — all user inputs HTML-escaped to prevent injection</td></tr>
+  <tr><td>Web UI</td><td><code>templates/index.html</code></td><td>Single-page form with sample data loading, live memo preview, and PDF/JSON download. PDF export uses cached memo data (no second AI call)</td></tr>
+  <tr><td>Tests</td><td><code>tests/</code></td><td>15 pytest unit tests covering financial ratio calculations, rating boundaries, and all three sample datasets</td></tr>
 </table>
 
 <h3>Design Decisions</h3>
 <ul>
   <li><strong>Deterministic risk scoring:</strong> Financial ratios and risk ratings are computed by code, not by AI. This is non-negotiable in financial services — you need reproducible, auditable risk numbers.</li>
   <li><strong>AI for narrative only:</strong> The LLM receives pre-computed metrics and writes the human-readable analysis. It cannot change the numbers, only interpret them.</li>
-  <li><strong>Structured output:</strong> The LLM is prompted to return JSON with defined keys, ensuring consistent memo structure across all applications.</li>
-  <li><strong>Sample data:</strong> Three realistic scenarios included (strong SME, moderate agricultural firm, high-risk retail startup) to demonstrate range of outputs.</li>
+  <li><strong>Gemini structured output:</strong> The API uses <code>response_schema</code> with a Pydantic model to enforce output shape — eliminating fragile JSON parsing and markdown-stripping workarounds. The schema acts as a contract between the AI and the application.</li>
+  <li><strong>Security:</strong> All user-controllable values are HTML-escaped before embedding in the PDF template. Error handling covers API rate limits, timeouts, and malformed AI responses with clear user-facing messages.</li>
+  <li><strong>No redundant AI calls:</strong> PDF download uses the already-generated memo via a dedicated <code>/api/memo/pdf</code> endpoint — no second Gemini call, saving cost and latency.</li>
+  <li><strong>Sample data:</strong> Three realistic scenarios included (strong SME → AA, moderate agricultural → BB, high-risk retail → CCC) to demonstrate the full range of outputs.</li>
 </ul>
 
 <!-- PAGE 3: Extensions -->
@@ -138,14 +141,17 @@
   <li>Authentication & RBAC (analyst, reviewer, committee roles)</li>
   <li>Audit logging — every generated memo stored with inputs, model version, and timestamp</li>
   <li>Rate limiting and cost controls on LLM API calls</li>
-  <li>Input sanitization and prompt injection prevention</li>
-  <li>Deployment: Docker container on cloud infrastructure with HTTPS</li>
+  <li><s>Input sanitization</s> ✓ Done — HTML escaping on all user inputs in PDF, Pydantic validation on API input</li>
+  <li><s>Structured AI output</s> ✓ Done — Gemini <code>response_schema</code> enforces output contract</li>
+  <li><s>Error handling</s> ✓ Done — rate limits, API errors, malformed responses handled with user-facing messages</li>
+  <li><s>Containerization</s> ✓ Done — Dockerfile with healthcheck</li>
+  <li><s>Unit tests</s> ✓ Done — 15 tests covering the risk engine</li>
   <li>Data encryption at rest and in transit (financial data sensitivity)</li>
 </ul>
 
 <div class="footer" style="margin-top: 40px;">
-  FinServe AI Credit Memo Generator — Built with Python, FastAPI, Gemini API, WeasyPrint<br>
-  Source code: GitHub repository (attached)
+  FinServe AI Credit Memo Generator — Python 3.12, FastAPI, Gemini 2.5 Flash, WeasyPrint, 15 unit tests<br>
+  Source code: github.com/qbakom/FinServe
 </div>
 
 </body>
