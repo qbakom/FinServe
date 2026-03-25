@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, Response
 from fastapi.templating import Jinja2Templates
 
@@ -43,15 +43,14 @@ async def get_sample(filename: str):
     return json.loads(path.read_text())
 
 
-@app.post("/api/generate")
-async def generate_memo(app_data: ApplicationData):
-    # Step 1: Deterministic risk scoring
+def _build_memo(app_data: ApplicationData) -> CreditMemo:
     metrics = compute_risk_metrics(app_data)
+    try:
+        sections = generate_memo_sections(app_data, metrics)
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
-    # Step 2: AI narrative generation
-    sections = generate_memo_sections(app_data, metrics)
-
-    memo = CreditMemo(
+    return CreditMemo(
         application=app_data,
         risk_metrics=metrics,
         executive_summary=sections["executive_summary"],
@@ -63,26 +62,16 @@ async def generate_memo(app_data: ApplicationData):
         generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
     )
 
+
+@app.post("/api/generate")
+async def generate_memo(app_data: ApplicationData):
+    memo = _build_memo(app_data)
     return memo.model_dump()
 
 
 @app.post("/api/generate/pdf")
 async def generate_pdf(app_data: ApplicationData):
-    metrics = compute_risk_metrics(app_data)
-    sections = generate_memo_sections(app_data, metrics)
-
-    memo = CreditMemo(
-        application=app_data,
-        risk_metrics=metrics,
-        executive_summary=sections["executive_summary"],
-        financial_analysis=sections["financial_analysis"],
-        risk_assessment=sections["risk_assessment"],
-        collateral_analysis=sections["collateral_analysis"],
-        recommendation=sections["recommendation"],
-        conditions=sections["conditions"],
-        generated_at=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
-    )
-
+    memo = _build_memo(app_data)
     pdf_bytes = render_memo_pdf(memo)
     filename = f"credit_memo_{app_data.client_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
 

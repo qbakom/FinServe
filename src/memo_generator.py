@@ -73,19 +73,28 @@ Generate the following sections as a JSON object with these exact keys:
 
 Return ONLY the JSON object, no markdown formatting."""
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=user_prompt,
-        config=genai.types.GenerateContentConfig(
-            system_instruction=SYSTEM_PROMPT,
-            temperature=0.3,
-            max_output_tokens=2000,
-        ),
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=user_prompt,
+            config=genai.types.GenerateContentConfig(
+                system_instruction=SYSTEM_PROMPT,
+                temperature=0.3,
+                max_output_tokens=2000,
+            ),
+        )
+    except Exception as e:
+        error_msg = str(e)
+        if "429" in error_msg or "quota" in error_msg.lower() or "rate" in error_msg.lower():
+            raise RuntimeError("Gemini API rate limit exceeded. Please wait a moment and try again.")
+        raise RuntimeError(f"Gemini API error: {error_msg}")
 
     text = response.text.strip()
     # Handle potential markdown wrapping
     if text.startswith("```"):
         text = text.split("\n", 1)[1].rsplit("```", 1)[0].strip()
 
-    return json.loads(text)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        raise RuntimeError("Failed to parse AI response. Please try again.")
